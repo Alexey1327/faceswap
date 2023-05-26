@@ -606,10 +606,10 @@ class ExtractArgs(ExtractConvertArgs):
             opts=("-sp", "--singleprocess"),
             action="store_true",
             default=False,
-            backend="nvidia",
+            backend=("nvidia", "directml", "rocm", "apple_silicon"),
             group=_("settings"),
             help=_("Don't run extraction in parallel. Will run each part of the extraction "
-                   "process separately (one after the other) rather than all at the smae time. "
+                   "process separately (one after the other) rather than all at the same time. "
                    "Useful if VRAM is at a premium.")))
         argument_list.append(dict(
             opts=("-s", "--skip-existing"),
@@ -1043,21 +1043,13 @@ class TrainArgs(FaceSwapArgs):
                    "you want the model to stop automatically at a set number of iterations, you "
                    "can set that value here.")))
         argument_list.append(dict(
-            opts=("-d", "--distributed"),
-            action="store_true",
-            default=False,
-            backend="nvidia",
-            group=_("training"),
-            help=_("[Deprecated - Use '-D, --distribution-strategy' instead] Use the Tensorflow "
-                   "Mirrored Distrubution Strategy to train on multiple GPUs.")))
-        argument_list.append(dict(
             opts=("-D", "--distribution-strategy"),
             dest="distribution_strategy",
             action=Radio,
             type=str.lower,
             choices=["default", "central-storage", "mirrored"],
             default="default",
-            backend="nvidia",
+            backend=("nvidia", "directml", "rocm", "apple_silicon"),
             group=_("training"),
             help=_("R|Select the distribution stategy to use."
                    "\nL|default: Use Tensorflow's default distribution strategy."

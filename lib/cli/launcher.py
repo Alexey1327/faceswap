@@ -10,8 +10,8 @@ from typing import Callable, TYPE_CHECKING
 
 from lib.gpu_stats import set_exclude_devices, GPUStats
 from lib.logger import crash_log, log_setup
-from lib.utils import (FaceswapError, get_backend, get_tf_version, safe_shutdown,
-                       set_backend, set_system_verbosity)
+from lib.utils import (deprecation_warning, FaceswapError, get_backend, get_tf_version,
+                       safe_shutdown, set_backend, set_system_verbosity)
 
 if TYPE_CHECKING:
     import argparse
@@ -57,6 +57,10 @@ class ScriptExecutor():  # pylint:disable=too-few-public-methods
         # Allocate a decent number of threads to numexpr to suppress warnings
         cpu_count = os.cpu_count()
         allocate = cpu_count - cpu_count // 3 if cpu_count is not None else 1
+        if "OMP_NUM_THREADS" in os.environ:
+            # If this is set above NUMEXPR_MAX_THREADS, numexpr will error.
+            # ref: https://github.com/pydata/numexpr/issues/322
+            os.environ.pop("OMP_NUM_THREADS")
         os.environ["NUMEXPR_MAX_THREADS"] = str(max(1, allocate))
 
         # Ensure tensorflow doesn't pin all threads to one core when using Math Kernel Library
@@ -87,9 +91,10 @@ class ScriptExecutor():  # pylint:disable=too-few-public-methods
         FaceswapError
             If Tensorflow is not found, or is not between versions 2.4 and 2.9
         """
-        amd_ver = 2.2
-        min_ver = 2.7
-        max_ver = 2.9
+        amd_ver = (2, 2)
+        directml_ver = rocm_ver = (2, 10)
+        min_ver = (2, 7)
+        max_ver = (2, 10)
         try:
             import tensorflow as tf  # noqa pylint:disable=import-outside-toplevel,unused-import
         except ImportError as err:
@@ -120,6 +125,14 @@ class ScriptExecutor():  # pylint:disable=too-few-public-methods
         if backend == "amd" and tf_ver != amd_ver:
             msg = (f"The supported Tensorflow version for AMD cards is {amd_ver} but you have "
                    f"version {tf_ver} installed. Please install the correct version.")
+            self._handle_import_error(msg)
+        if backend == "directml" and tf_ver != directml_ver:
+            msg = (f"The supported Tensorflow version for DirectML cards is {directml_ver} but "
+                   f"you have version {tf_ver} installed. Please install the correct version.")
+            self._handle_import_error(msg)
+        if backend == "rocm" and tf_ver != rocm_ver:
+            msg = (f"The supported Tensorflow version for ROCm cards is {rocm_ver} but "
+                   f"you have version {tf_ver} installed. Please install the correct version.")
             self._handle_import_error(msg)
         logger.debug("Installed Tensorflow Version: %s", tf_ver)
 
@@ -246,8 +259,8 @@ class ScriptExecutor():  # pylint:disable=too-few-public-methods
         arguments: :class:`argparse.Namespace`
             The command line arguments passed to Faceswap.
         """
-        if get_backend() == "cpu":
-            # Cpu backends will not have this attribute
+        if not hasattr(arguments, "exclude_gpus"):
+            # CPU backends and systems where no GPU was detected will not have this attribute
             logger.debug("Adding missing exclude gpus argument to namespace")
             setattr(arguments, "exclude_gpus", None)
             return
@@ -288,6 +301,10 @@ class ScriptExecutor():  # pylint:disable=too-few-public-methods
             ``True`` if AMD was set up succesfully otherwise ``False``
         """
         logger.debug("Setting up for AMD")
+        if platform.system() == "Windows":
+            deprecation_warning("The AMD backend",
+                                additional_info="Please consider re-installing using the "
+                                                "'DirectML' backend")
         try:
             import plaidml  # noqa pylint:disable=unused-import,import-outside-toplevel
         except ImportError:

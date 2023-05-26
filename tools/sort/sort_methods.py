@@ -208,7 +208,7 @@ class InfoLoader():
 class SortMethod():
     """ Parent class for sort methods. All sort methods should inherit from this class
 
-    Parameters:
+    Parameters
     ----------
     arguments: :class:`argparse.Namespace`
         The command line arguments passed to the sort process
@@ -305,19 +305,19 @@ class SortMethod():
                      [r[0] if isinstance(r, (tuple, list)) else r for r in self._result])
 
     @classmethod
-    def _get_unique_labels(cls, numbers: List[float]) -> List[str]:
+    def _get_unique_labels(cls, numbers: np.ndarray) -> List[str]:
         """ For a list of threshold values for displaying in the bin name, get the lowest number of
         decimal figures (down to int) required to have a unique set of folder names and return the
         formatted numbers.
 
         Parameters
         ----------
-        numbers: list
+        numbers: :class:`numpy.ndarray`
             The list of floating point threshold numbers being used as boundary points
 
         Returns
         -------
-        list
+        list[str]
             The string formatted numbers at the lowest precision possible to represent them
             uniquely
         """
@@ -567,7 +567,7 @@ class SortMultiMethod(SortMethod):
 class SortBlur(SortMethod):
     """ Sort images by blur or blur-fft amount
 
-    Parameters:
+    Parameters
     ----------
     arguments: :class:`argparse.Namespace`
         The command line arguments passed to the sort process
@@ -691,7 +691,7 @@ class SortBlur(SortMethod):
 class SortColor(SortMethod):
     """ Score by channel average intensity or black pixels.
 
-    Parameters:
+    Parameters
     ----------
     arguments: :class:`argparse.Namespace`
         The command line arguments passed to the sort process
@@ -827,7 +827,7 @@ class SortColor(SortMethod):
 class SortFace(SortMethod):
     """ Sort by identity similarity using VGG Face 2
 
-    Parameters:
+    Parameters
     ----------
     arguments: :class:`argparse.Namespace`
         The command line arguments passed to the sort process
@@ -935,7 +935,7 @@ class SortFace(SortMethod):
 class SortHistogram(SortMethod):
     """ Sort by image histogram similarity or dissimilarity
 
-    Parameters:
+    Parameters
     ----------
     arguments: :class:`argparse.Namespace`
         The command line arguments passed to the sort process

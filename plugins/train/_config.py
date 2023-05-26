@@ -104,8 +104,8 @@ class Config(FaceswapConfig):
         """ Set the global options for training """
         logger.debug("Setting global config")
         section = "global"
-        self.add_section(title=section,
-                         info="Options that apply to all models" + ADDITIONAL_INFO)
+        self.add_section(section,
+                         "Options that apply to all models" + ADDITIONAL_INFO)
         self.add_item(
             section=section,
             title="centering",
@@ -239,7 +239,7 @@ class Config(FaceswapConfig):
             title="autoclip",
             datatype=bool,
             default=False,
-            info="[Nvidia Only] Apply AutoClipping to the gradients. AutoClip analyzes the "
+            info="[Not PlaidML] Apply AutoClipping to the gradients. AutoClip analyzes the "
                  "gradient weights and adjusts the normalization value dynamically to fit the "
                  "data. Can help prevent NaNs and improve model optimization at the expense of "
                  "VRAM. Ref: AutoClip: Adaptive Gradient Clipping for Source Separation Networks "
@@ -277,15 +277,16 @@ class Config(FaceswapConfig):
             default=False,
             fixed=False,
             group="network",
-            info="[Nvidia Only], NVIDIA GPUs can run operations in float16 faster than in "
+            info="[Not PlaidML], NVIDIA GPUs can run operations in float16 faster than in "
                  "float32. Mixed precision allows you to use a mix of float16 with float32, to "
                  "get the performance benefits from float16 and the numeric stability benefits "
-                 "from float32.\n\nWhile mixed precision will run on most Nvidia models, it will "
-                 "only speed up training on more recent GPUs. Those with compute capability 7.0 "
-                 "or higher will see the greatest performance benefit from mixed precision "
-                 "because they have Tensor Cores. Older GPUs offer no math performance benefit "
-                 "for using mixed precision, however memory and bandwidth savings can enable some "
-                 "speedups. Generally RTX GPUs and later will offer the most benefit.")
+                 "from float32.\n\nThis is untested on DirectML backend, but will run on most "
+                 "Nvidia models. it will only speed up training on more recent GPUs. Those with "
+                 "compute capability 7.0 or higher will see the greatest performance benefit from "
+                 "mixed precision because they have Tensor Cores. Older GPUs offer no math "
+                 "performance benefit for using mixed precision, however memory and bandwidth "
+                 "savings can enable some speedups. Generally RTX GPUs and later will offer the "
+                 "most benefit.")
         self.add_item(
             section=section,
             title="nan_protection",
@@ -324,10 +325,10 @@ class Config(FaceswapConfig):
         # pylint:enable=line-too-long
         logger.debug("Setting Loss config")
         section = "global.loss"
-        self.add_section(title=section,
-                         info="Loss configuration options\n"
-                              "Loss is the mechanism by which a Neural Network judges how well it "
-                              "thinks that it is recreating a face." + ADDITIONAL_INFO)
+        self.add_section(section,
+                         "Loss configuration options\n"
+                         "Loss is the mechanism by which a Neural Network judges how well it "
+                         "thinks that it is recreating a face." + ADDITIONAL_INFO)
         self.add_item(
             section=section,
             title="loss_function",
